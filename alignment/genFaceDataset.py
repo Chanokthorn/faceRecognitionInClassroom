@@ -4,13 +4,14 @@ import cv2
 import os
 import pickle
 import shutil
+import numpy as np
 
 
 class genFaceDataset:
     def __init__(self):
         self.__getMultiAlignment = getMultiAlignment.MultifaceAlignment()
         self.__personBoxManager = personBoxManager.PersonBoxManager()
-        self.__frameStep = 5
+        self.__frameStep = 10
         self.personBoxDict = {}
         return
 
@@ -38,10 +39,11 @@ class genFaceDataset:
             if frame is None:
                 break
             frame = cv2.resize(frame, self.resolution)
-            boxes, alignedFaces = self.__getMultiAlignment.getAlignments(
-                frame, mode="all")
-            for box, alignedFace in zip(boxes, alignedFaces):
-                self.__personBoxManager.stack(box, alignedFace)
+            boxes = self.__getMultiAlignment.getAlignments(
+                frame, mode="faceBoxes")
+            for box in boxes:
+                face = frame[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+                self.__personBoxManager.stack(box, face)
             print("\r frame: " + str(frameCounter))
             frameCounter += 1
         cap.release()
